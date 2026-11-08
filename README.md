@@ -7,6 +7,11 @@ Mobile-first 9:16 dark "Locked Video Player" landing page for Sana's social prof
 - "18+ Only • Click Play to Continue" warning
 - The whole player (and Play button) redirects immediately to the monetized link:
   `https://urlbit.pro/MbVaf`
+- **Popup flow (added 2026-11-08):** tapping Play opens a popup card ("🔓 Video Ready!")
+  with one big button. One click on that button opens Saif's Adsterra link
+  (`https://www.profitableratecpmnetwork.com/bis7rvtgj?key=...`) in a new tab
+  AND sends this tab to the urlbit link above. The Adsterra URL lives only in
+  the button's JS — it is not shown as a visible link on the page.
 
 ## Files
 

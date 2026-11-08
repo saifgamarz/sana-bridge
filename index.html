@@ -129,6 +129,47 @@
   .warning { text-align: center; font-size: 13.5px; font-weight: 700; letter-spacing: .3px; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.7); }
   .warning span { color: #ffb3c1; }
   .age-note { text-align: center; font-size: 11px; color: rgba(255,255,255,.55); }
+
+  /* ---- popup modal (Adsterra link hides behind its button) ---- */
+  .popup-overlay {
+    position: absolute; inset: 0; z-index: 20;
+    background: rgba(0,0,0,.82);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .popup-overlay.open { display: flex; }
+  .popup-card {
+    position: relative;
+    width: 100%; max-width: 320px;
+    background: #14141d;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 22px;
+    padding: 26px 20px 20px;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,.7);
+    animation: popUp .25s ease-out;
+  }
+  @keyframes popUp { from { transform: translateY(16px) scale(.96); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+  .popup-close {
+    position: absolute; top: 10px; right: 12px;
+    border: none; background: none; color: rgba(255,255,255,.6);
+    font-size: 22px; line-height: 1; cursor: pointer; padding: 4px 8px;
+  }
+  .popup-lock { font-size: 38px; }
+  .popup-title { font-size: 20px; font-weight: 800; margin-top: 10px; }
+  .popup-text { font-size: 13.5px; line-height: 1.5; color: rgba(255,255,255,.8); margin-top: 8px; }
+  .popup-btn {
+    width: 100%; border: none; cursor: pointer;
+    margin-top: 18px; padding: 15px 18px; border-radius: 999px;
+    background: linear-gradient(135deg, #ff2d55, #ff5e3a);
+    color: #fff; font-size: 16.5px; font-weight: 800;
+    box-shadow: 0 0 35px rgba(255,45,85,.6), 0 10px 24px rgba(0,0,0,.45);
+    animation: glowPulse 1.8s ease-in-out infinite;
+  }
+  .popup-note { font-size: 11.5px; color: rgba(255,255,255,.55); margin-top: 12px; }
+
 </style>
 </head>
 <body>
@@ -182,16 +223,51 @@
       <div class="age-note">By continuing you confirm you are 18 or older.</div>
     </div>
   </div>
+
+  <!-- Popup: opens on Play tap. The Adsterra link lives only behind this button. -->
+  <div class="popup-overlay" id="popup" role="dialog" aria-modal="true" aria-label="Unlock video">
+    <div class="popup-card" id="popupCard">
+      <button class="popup-close" id="popupClose" aria-label="Close">×</button>
+      <div class="popup-lock">🔓</div>
+      <div class="popup-title">Video Ready!</div>
+      <div class="popup-text">Your private 03:42 clip is unlocked.<br />Tap the button below to watch it now.</div>
+      <button class="popup-btn" id="popupBtn">▶ Watch Full Video</button>
+      <div class="popup-note">18+ Only • 1 click • No signup</div>
+    </div>
+  </div>
 </div>
 
 <script>
-  // Monetized destination — single source of truth for every tap.
+  // Destinations — single source of truth.
+  // DEST = main video destination (this tab). ADSTERRA = hidden behind the popup button (new tab).
   var DEST = "https://urlbit.pro/MbVaf";
-  function go() { window.location.href = DEST; }
-  document.getElementById("player").addEventListener("click", go);
-  document.getElementById("player").addEventListener("keydown", function (e) {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); }
+  var ADSTERRA = "https://www.profitableratecpmnetwork.com/bis7rvtgj?key=88e72b46caa520a5f7ba4ed4c8845942";
+
+  var popup = document.getElementById("popup");
+  function openPopup() { popup.classList.add("open"); }
+  function closePopup() { popup.classList.remove("open"); }
+
+  // Tap on the player / Play button opens the popup (no redirect yet).
+  document.getElementById("player").addEventListener("click", function (e) {
+    if (popup.classList.contains("open")) return;
+    openPopup();
   });
+  document.getElementById("player").addEventListener("keydown", function (e) {
+    if ((e.key === "Enter" || e.key === " ") && !popup.classList.contains("open")) { e.preventDefault(); openPopup(); }
+  });
+
+  // ONE click on the popup button: Adsterra opens in a new tab,
+  // and this tab continues to the main video destination.
+  document.getElementById("popupBtn").addEventListener("click", function (e) {
+    e.stopPropagation();
+    window.open(ADSTERRA, "_blank", "noopener");
+    window.location.href = DEST;
+  });
+  // Close button / tap outside the card / Esc just closes the popup.
+  document.getElementById("popupClose").addEventListener("click", function (e) { e.stopPropagation(); closePopup(); });
+  popup.addEventListener("click", function (e) { if (e.target === popup) closePopup(); });
+  document.getElementById("popupCard").addEventListener("click", function (e) { e.stopPropagation(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePopup(); });
   // Small live-feel touch: watcher count drifts slightly, no fake claims beyond that.
   var base = 2431;
   setInterval(function () {
